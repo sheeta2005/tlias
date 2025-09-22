@@ -1,8 +1,10 @@
 package com.sheeta1998.controller;
 
+import com.sheeta1998.exception.HaveStudent;
 import com.sheeta1998.pojo.Dept;
 import com.sheeta1998.pojo.Result;
 import com.sheeta1998.service.DeptService;
+import com.sheeta1998.service.EmpService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -15,6 +17,9 @@ import java.util.List;
 public class DeptController  {
     @Autowired
     private DeptService deptService;
+
+    @Autowired
+    private EmpService empService;
 
     //@RequestMapping(value = "/depts", method = RequestMethod.GET)
     @GetMapping
@@ -40,6 +45,10 @@ public class DeptController  {
     public Result delete(@RequestParam ("id")Integer id) {
         if (id == null || id <= 0) {
             return Result.error("无效的部门ID");
+        }
+        List hasEmployees = empService.hasEmployeesInDepartment(id);
+        if (!hasEmployees.isEmpty()) {
+            throw new HaveStudent("该部门下存在员工，无法删除");
         }
         deptService.delete(id);
         return Result.success();
